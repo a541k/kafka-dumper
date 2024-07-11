@@ -1,33 +1,36 @@
 package com.telcobright.dumper;
 
 import com.telcobright.dumper.config.AppConfig;
-import com.telcobright.dumper.repository.SmsRepo;
+import com.telcobright.dumper.entity.Campaign;
 import com.telcobright.dumper.service.CampaignFetcher;
-import com.telcobright.dumper.service.CampaignGetter;
-import com.telcobright.dumper.service.TaskFetcher;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.domain.Specification;
 
 @SpringBootApplication
 @EnableConfigurationProperties(AppConfig.class)
 public class DumperApplication {
 
 	public static void main(String[] args) {
-
-		ApplicationContext context = SpringApplication.run(DumperApplication.class, args);
-		//context.getBean(TaskFetcher.class).getTasks();
-		//context.getBean(CampaignFetcher.class).getCampaign();
-		//context.getBean(CampaignFetcher.class).findAllCampaign();
-		//context.getBean(CampaignFetcher.class).fetchCampaignById("10000");
-		context.getBean(CampaignFetcher.class).fetchCampaign();
-
-//		CampaignGetter campaignGetter = new CampaignGetter(()->SmsRepo::getCampaign);
-
-
-		//System.out.println("hello world");
+		SpringApplication.run(DumperApplication.class, args);
 	}
 
+	@Bean
+	public CommandLineRunner run(ApplicationContext context) {
+		return args -> {
+			CampaignFetcher campaignFetcher = context.getBean(CampaignFetcher.class);
+
+			// Example: Fetch campaigns with default strategy
+			campaignFetcher.fetchCampaign(false, null);
+
+			// Example: Fetch active campaigns with custom specification
+			Specification<Campaign> spec = (root, query, criteriaBuilder) ->
+					criteriaBuilder.equal(root.get("status"), "active");
+			campaignFetcher.fetchCampaign(true, spec);
+		};
+	}
 }

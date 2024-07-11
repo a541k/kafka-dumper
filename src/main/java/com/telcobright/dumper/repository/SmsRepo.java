@@ -1,9 +1,10 @@
 package com.telcobright.dumper.repository;
 
 import com.telcobright.dumper.entity.Campaign;
-import com.telcobright.dumper.service.CampaignQuery;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
