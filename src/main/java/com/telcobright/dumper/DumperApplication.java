@@ -1,33 +1,36 @@
 package com.telcobright.dumper;
 
-import com.telcobright.dumper.config.AppConfig;
-import com.telcobright.dumper.repository.SmsRepo;
 import com.telcobright.dumper.service.CampaignFetcher;
-import com.telcobright.dumper.service.CampaignGetter;
-import com.telcobright.dumper.service.TaskFetcher;
+import com.telcobright.dumper.service.CampaignTaskFetcher;
+import com.telcobright.dumper.service.KafkaDumper;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-@EnableConfigurationProperties(AppConfig.class)
 public class DumperApplication {
 
 	public static void main(String[] args) {
 
 		ApplicationContext context = SpringApplication.run(DumperApplication.class, args);
-		//context.getBean(TaskFetcher.class).getTasks();
-		//context.getBean(CampaignFetcher.class).getCampaign();
-		//context.getBean(CampaignFetcher.class).findAllCampaign();
-		//context.getBean(CampaignFetcher.class).fetchCampaignById("10000");
-		context.getBean(CampaignFetcher.class).fetchCampaign();
+		context.getBean(KafkaDumper.class).dumpTasksToKafka();
 
-//		CampaignGetter campaignGetter = new CampaignGetter(()->SmsRepo::getCampaign);
+	}
 
+	@Bean
+	public CommandLineRunner commandLineRunner(KafkaDumper kafkaDumper) {
+		return args -> {
+			kafkaDumper.dumpTasksToKafka();
+		};
+	}
 
-		//System.out.println("hello world");
+	@Bean
+	public KafkaDumper kafkaDumper(CampaignTaskFetcher taskFetcher, CampaignFetcher campaignFetcher) {
+		int campaignBatchSize = 10; // replace with your desired value
+		int taskBatchSize = 20; // replace with your desired value
+		return new KafkaDumper(campaignBatchSize, taskBatchSize);
 	}
 
 }
