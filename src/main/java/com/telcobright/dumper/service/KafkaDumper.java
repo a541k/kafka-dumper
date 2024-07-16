@@ -26,24 +26,21 @@ public class KafkaDumper {
     }
 
     public void dumpTasksToKafka(){
-        boolean tasksLeft = false;
         int pageNumberOfCampaigns = 0;
+        Page<Campaign> campaignPage;
         do{
-            Page<Campaign> campaignPage = campaignFetcher.fetchEntities(PageRequest.of(pageNumberOfCampaigns++, campaignBatchSize));
-            if(campaignPage.isEmpty()){//---iteration complete, reset---
-                pageNumberOfCampaigns = 0;
-                continue;
-            }
+            campaignPage = campaignFetcher.fetchEntities(PageRequest.of(pageNumberOfCampaigns++, campaignBatchSize));
             for(Campaign campaign : campaignPage.getContent()) {
                 Page<CampaignTask> campaignTaskPage = taskFetcher.getTasksForCampaign(campaign.getCampaignId(), PageRequest.of(0, taskBatchSize));
                 List<CampaignTask> campaignTasks = new ArrayList<>(campaignTaskPage.getContent());
-                if(campaignTasks.isEmpty()) tasksLeft = true;
                 campaignTasks.forEach(campaignTask -> {
                     System.out.println(campaignTask.getCampaignTaskId());
                     //---send to Kafka---
+                    //-- set task status to --not Null --------------------------------
+                    //and save.
                 });
             }
-        }while(tasksLeft);
+        }while(campaignPage.hasContent());
 
     }
 }
